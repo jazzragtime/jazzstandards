@@ -10,6 +10,22 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+    <script>
+        // Initialiser Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrjH2MIEl2117_IV44QTmQ8ar41zmPDSM",
+            authDomain: "standards-de-jazz.firebaseapp.com",
+            projectId: "standards-de-jazz",
+            storageBucket: "standards-de-jazz.firebasestorage.app",
+            messagingSenderId: "757157723922",
+            appId: "1:757157723922:web:a4c5bf3e83d6747da9fdcb",
+            databaseURL: "https://standards-de-jazz-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database(app);
+    </script>
+
     <style>
         /* Le style CSS reste inchangé */
         body {
@@ -252,20 +268,6 @@
     </div>
 
     <script>
-        // Initialiser Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDrjH2MIEl2117_IV44QTmQ8ar41zmPDSM",
-            authDomain: "standards-de-jazz.firebaseapp.com",
-            projectId: "standards-de-jazz",
-            storageBucket: "standards-de-jazz.firebasestorage.app",
-            messagingSenderId: "757157723922",
-            appId: "1:757157723922:web:a4c5bf3e83d6747da9fdcb",
-            databaseURL: "https://standards-de-jazz-default-rtdb.europe-west1.firebasedatabase.app"
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database(app);
-
         let cadenceOption = null;
 
         function choisirCadenceTirage() {
