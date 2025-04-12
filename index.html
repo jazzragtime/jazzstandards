@@ -87,6 +87,10 @@
             },
             body: JSON.stringify({
                 nomPrénom: nomPrénom,
+                standardsChoisis: selectedStandards,
+                cadencesChoisies: cadenceOption === "choix"
+                    ? Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked')).map(cb => cb.value)
+                    : [],
                 standard: randomStandard,
                 cadence: randomCadence
             })
@@ -408,6 +412,10 @@
                 },
                 body: JSON.stringify({
                     nomPrénom: nomPrénom,
+                    standardsChoisis: selectedStandards,
+                    cadencesChoisies: cadenceOption === "choix"
+                        ? Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked')).map(cb => cb.value)
+                        : [],
                     standard: randomStandard,
                     cadence: randomCadence
                 })
