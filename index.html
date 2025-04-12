@@ -1,102 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tirage au sort - Jazz Standards et Cadences</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    </style>
-</head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tirage au sort - Jazz Standards et Cadences</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-<script type="module">
-
-    let cadenceOption = null;
-
-    function choisirCadenceTirage() {
-        cadenceOption = "tirage";
-        document.getElementById("cadenceOptions").style.display = "none";
-        document.getElementById("cadenceTirage").classList.add("selected");
-        document.getElementById("cadenceChoix").classList.remove("selected");
-    }
-
-    function choisirCadenceChoix() {
-        cadenceOption = "choix";
-        document.getElementById("cadenceOptions").style.display = "block";
-        document.getElementById("cadenceChoix").classList.add("selected");
-        document.getElementById("cadenceTirage").classList.remove("selected");
-    }
-
-    document.getElementById("tirageForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        // Récupérer le nom et prénom
-        const nomPrénom = document.getElementById("nomPrénom").value.trim();
-        if (!nomPrénom) {
-            document.getElementById("error").textContent = "Le nom et prénom sont obligatoires.";
-            return;
-        }
-
-        // Récupérer les standards choisis
-        const selectedStandards = [];
-        const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
-        checkboxes.forEach((checkbox) => {
-            selectedStandards.push(checkbox.value);
-        });
-
-        if (selectedStandards.length < 1) {
-            document.getElementById("error").textContent = "Veuillez sélectionner au moins un standard.";
-            return;
-        }
-
-        // Tirer un standard au hasard parmi ceux sélectionnés
-        const randomStandard = selectedStandards[Math.floor(Math.random() * selectedStandards.length)];
-
-        // Récupérer les cadences choisies
-        let randomCadence = "Aucune cadence choisie";
-        if (cadenceOption === "tirage" || !cadenceOption) {
-            const cadences = ["Do majeur", "La mineur", "Fa majeur", "Ré mineur", "Sol majeur", "Mi mineur"];
-            randomCadence = cadences[Math.floor(Math.random() * cadences.length)];
-        } else if (cadenceOption === "choix") {
-            const selectedCadences = [];
-            const cadenceCheckboxes = document.querySelectorAll('.cadence-options input[type="checkbox"]:checked');
-            cadenceCheckboxes.forEach((checkbox) => {
-                selectedCadences.push(checkbox.value);
-            });
-
-            if (selectedCadences.length > 0) {
-                randomCadence = selectedCadences[Math.floor(Math.random() * selectedCadences.length)];
-            }
-        }
-
-        // Afficher le résultat
-        document.getElementById("result").innerHTML = `Merci, <strong>${nomPrénom}</strong> !<br><br>Ton standard tiré au sort est : <strong>${randomStandard}</strong><br>La cadence tirée au sort est : <strong>${randomCadence}</strong>`;
-
-        // Réinitialiser le message d'erreur
-        document.getElementById("error").textContent = "";
-
-        // Envoyer les données vers Google Sheets via Apps Script
-        fetch("https://script.google.com/macros/s/AKfycbyVIHoy54_PB6MpoJVEGDH1YrDVGm7XoZrv3kMbvok78oqNUKGLqrnKMCp2vwDS4j8YrA/exec", {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                nomPrénom: nomPrénom,
-                standardsChoisis: selectedStandards,
-                cadencesChoisies: cadenceOption === "choix"
-                    ? Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked')).map(cb => cb.value)
-                    : [],
-                standard: randomStandard,
-                cadence: randomCadence
-            })
-        });
-    });
-</script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -404,7 +312,11 @@
             document.getElementById("error").textContent = "";
 
             // Envoyer les données vers Google Sheets via Apps Script
-            fetch("https://script.google.com/macros/s/AKfycbyVIHoy54_PB6MpoJVEGDH1YrDVGm7XoZrv3kMbvok78oqNUKGLqrnKMCp2vwDS4j8YrA/exec", {
+            const cadenceCheckboxes = Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked'));
+            const cadenceValues = cadenceCheckboxes.map(cb => cb.value);
+            const nbCadences = cadenceOption === "Sélection" ? cadenceValues.length : 6;
+
+            fetch("https://script.google.com/macros/s/AKfycbziDfB-Nk-EQvYcaOTpR3kB86BTNdSc6iNvfjBgSyVOC1d-4XJu3k_To5esVyLiqedm/exec", {
                 method: "POST",
                 mode: "no-cors",
                 headers: {
@@ -412,12 +324,11 @@
                 },
                 body: JSON.stringify({
                     nomPrénom: nomPrénom,
-                    standardsChoisis: selectedStandards,
-                    cadencesChoisies: cadenceOption === "choix"
-                        ? Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked')).map(cb => cb.value)
-                        : [],
                     standard: randomStandard,
-                    cadence: randomCadence
+                    cadence: randomCadence,
+                    nbStandards: selectedStandards.length,
+                    nbCadences: nbCadences,
+                    date: new Date().toLocaleString("fr-FR")
                 })
             });
         });
