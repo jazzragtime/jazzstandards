@@ -332,6 +332,7 @@
 
             // Sauvegarder les données pour l'envoi dans Firebase
             saveTirage(nomPrénom, randomStandard, randomCadence);
+            console.log("Envoi des données vers Firebase : ", nomPrénom, randomStandard, randomCadence);
         });
 
         function saveTirage(nomPrénom, standard, cadence) {
