@@ -6,9 +6,9 @@
     <title>Tirage au sort - Jazz Standards et Cadences</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK (ajouté une seule fois) -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
+    <!-- Firebase SDK (version non-modulaire) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
         /* Le style CSS reste inchangé */
@@ -251,7 +251,7 @@
         <div id="error" class="error"></div>
     </div>
 
-    <script type="module">
+    <script>
         // Initialiser Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDrjH2MIEl2117_IV44QTmQ8ar41zmPDSM",
@@ -263,8 +263,8 @@
             databaseURL: "https://standards-de-jazz-default-rtdb.europe-west1.firebasedatabase.app"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database(app);
 
         let cadenceOption = null;
 
@@ -332,12 +332,11 @@
 
             // Sauvegarder les données pour l'envoi dans Firebase
             saveTirage(nomPrénom, randomStandard, randomCadence);
-            console.log("Envoi des données vers Firebase : ", nomPrénom, randomStandard, randomCadence);
         });
 
         function saveTirage(nomPrénom, standard, cadence) {
-            const tirageRef = ref(database, 'tirages/' + nomPrénom + '-' + Date.now());
-            set(tirageRef, {
+            const tirageRef = firebase.database().ref('tirages/' + nomPrénom + '-' + Date.now());
+            tirageRef.set({
                 nomPrénom: nomPrénom,
                 standard: standard,
                 cadence: cadence,
