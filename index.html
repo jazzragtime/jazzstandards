@@ -305,18 +305,21 @@
                 }
             }
 
+            // Préparer les données pour l'envoi
+            const cadenceCheckboxes = Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked'));
+            const cadenceValues = cadenceCheckboxes.map(cb => cb.value);
+            const nbCadences = cadenceOption === "choix" ? cadenceValues.length : 6;
+            const cadencesCoches = cadenceOption === "choix" ? cadenceValues.join(" / ") : "toutes";
+            const standardsCoches = selectedStandards.join(" / ");
+
             // Afficher le résultat
-            document.getElementById("result").innerHTML = `Merci, <strong>${nomPrénom}</strong> !<br><br>Ton standard tiré au sort est : <strong>${randomStandard}</strong><br>La cadence tirée au sort est : <strong>${randomCadence}</strong>`;
+            document.getElementById("result").innerHTML = `Merci.<br>Votre standard : ${randomStandard}<br>Votre cadence : ${randomCadence}`;
 
             // Réinitialiser le message d'erreur
             document.getElementById("error").textContent = "";
 
             // Envoyer les données vers Google Sheets via Apps Script
-            const cadenceCheckboxes = Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked'));
-            const cadenceValues = cadenceCheckboxes.map(cb => cb.value);
-            const nbCadences = cadenceOption === "Sélection" ? cadenceValues.length : 6;
-
-            fetch("https://script.google.com/macros/s/AKfycbziDfB-Nk-EQvYcaOTpR3kB86BTNdSc6iNvfjBgSyVOC1d-4XJu3k_To5esVyLiqedm/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbzyrees8RVzBQfVDabLHULio4uOJaerzQCu-RAZ51eZVoAAqk-P6Es0Bjd-FGJOYGOf/exec", {
                 method: "POST",
                 mode: "no-cors",
                 headers: {
@@ -328,6 +331,8 @@
                     cadence: randomCadence,
                     nbStandards: selectedStandards.length,
                     nbCadences: nbCadences,
+                    standardsCoches: standardsCoches,
+                    cadencesCoches: cadencesCoches,
                     date: new Date().toLocaleString("fr-FR")
                 })
             });
