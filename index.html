@@ -11,11 +11,12 @@
             background-color: #1c1c1c; /* Fond noir profond */
             color: white; /* Texte en blanc */
             margin: 0;
-            padding: 0;
+            padding: 40px 0;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start;
+            min-height: 100vh;
+            overflow-y: auto;
         }
 
         .container {
@@ -242,6 +243,31 @@
 
         <!-- Résultats -->
         <div id="result"></div>
+        <hr>
+        <p>
+          <button onclick="window.print()">📄 Télécharger ce tirage au format PDF</button><br>
+          <small style="color: #bbb;">(Ce bouton vous permet de sauvegarder les informations de votre tirage.)</small>
+        </p>
+
+        <p><strong>Déposer votre vidéo :</strong></p>
+        <p>
+          Merci de déposer votre interprétation dans le dossier Google Drive ci-dessous :
+        </p>
+        <p>
+          <a href="https://drive.google.com/drive/folders/1O-I1JQtd_4e4lo0cTzFCc5KvpBmchw-2?usp=sharing" target="_blank">
+            📁 Accéder au dossier Google Drive
+          </a>
+        </p>
+
+        <p>
+          <strong>Nom du fichier attendu :</strong><br>
+          <em>NOM_Prénom - NOMduSTANDARD</em><br>
+          <em>NOM_Prénom_TONALITÉCadence</em>
+        </p>
+
+        <p style="font-size: 0.9em; color: #bbb;">
+          📌 Vous pouvez créer un dossier à votre nom dans le Drive si vous le souhaitez.
+        </p>
         <div id="error" class="error"></div>
     </div>
 
