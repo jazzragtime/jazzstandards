@@ -1,16 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tirage au sort - Jazz Standards et Cadences</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
     </style>
 </head>
     <meta charset="UTF-8">
@@ -18,35 +13,6 @@
     <title>Tirage au sort - Jazz Standards et Cadences</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 <script type="module">
-    // Configuration Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyDrjH2MIEl2117_IV44QTmQ8ar41zmPDSM",
-        authDomain: "standards-de-jazz.firebaseapp.com",
-        projectId: "standards-de-jazz",
-        storageBucket: "standards-de-jazz.firebasestorage.app",
-        messagingSenderId: "757157723922",
-        appId: "1:757157723922:web:a4c5bf3e83d6747da9fdcb",
-        databaseURL: "https://standards-de-jazz-default-rtdb.europe-west1.firebasedatabase.app"  // Ajoute cette ligne
-    };
-
-    // Initialiser Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
-    // Fonction pour enregistrer le tirage dans Firebase
-    function saveTirage(nomPrénom, standard, cadence) {
-        const tirageRef = ref(database, 'tirages/' + nomPrénom + '-' + Date.now());
-        set(tirageRef, {
-            nomPrénom: nomPrénom,
-            standard: standard,
-            cadence: cadence,
-            date: new Date().toLocaleString()
-        }).then(() => {
-            console.log("Tirage enregistré dans Firebase!");
-        }).catch((error) => {
-            console.error("Erreur lors de l'enregistrement:", error);
-        });
-    }
 
     let cadenceOption = null;
 
@@ -91,7 +57,7 @@
 
         // Récupérer les cadences choisies
         let randomCadence = "Aucune cadence choisie";
-        if (cadenceOption === "tirage") {
+        if (cadenceOption === "tirage" || !cadenceOption) {
             const cadences = ["Do majeur", "La mineur", "Fa majeur", "Ré mineur", "Sol majeur", "Mi mineur"];
             randomCadence = cadences[Math.floor(Math.random() * cadences.length)];
         } else if (cadenceOption === "choix") {
@@ -112,8 +78,19 @@
         // Réinitialiser le message d'erreur
         document.getElementById("error").textContent = "";
 
-        // Sauvegarder les données pour l'envoi dans Firebase
-        saveTirage(nomPrénom, randomStandard, randomCadence);
+        // Envoyer les données vers Google Sheets via Apps Script
+        fetch("https://script.google.com/macros/s/AKfycbyVIHoy54_PB6MpoJVEGDH1YrDVGm7XoZrv3kMbvok78oqNUKGLqrnKMCp2vwDS4j8YrA/exec", {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nomPrénom: nomPrénom,
+                standard: randomStandard,
+                cadence: randomCadence
+            })
+        });
     });
 </script>
     <style>
@@ -400,7 +377,7 @@
 
             // Récupérer les cadences choisies
             let randomCadence = "Aucune cadence choisie";
-            if (cadenceOption === "tirage") {
+            if (cadenceOption === "tirage" || !cadenceOption) {
                 // Tirage au sort parmi les cadences prédéfinies
                 const cadences = ["Do majeur", "La mineur", "Fa majeur", "Ré mineur", "Sol majeur", "Mi mineur"];
                 randomCadence = cadences[Math.floor(Math.random() * cadences.length)];
@@ -421,6 +398,20 @@
 
             // Réinitialiser le message d'erreur
             document.getElementById("error").textContent = "";
+
+            // Envoyer les données vers Google Sheets via Apps Script
+            fetch("https://script.google.com/macros/s/AKfycbyVIHoy54_PB6MpoJVEGDH1YrDVGm7XoZrv3kMbvok78oqNUKGLqrnKMCp2vwDS4j8YrA/exec", {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nomPrénom: nomPrénom,
+                    standard: randomStandard,
+                    cadence: randomCadence
+                })
+            });
         });
     </script>
 
