@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tirage au sort - Jazz Standards et Cadences</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        * {
+          text-transform: uppercase;
+          font-variant: normal;
+          letter-spacing: 0.5px;
+        }
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
             background-color: #1c1c1c; /* Fond noir profond */
             color: white; /* Texte en blanc */
             margin: 0;
@@ -224,23 +230,30 @@
                 </div>
 
                 <div id="cadenceOptions" class="cadence-options">
-                    <input type="checkbox" id="doMaj" value="Do majeur">
-                    <label for="doMaj">Do majeur</label>
-
-                    <input type="checkbox" id="laMin" value="La mineur">
-                    <label for="laMin">La mineur</label>
-
-                    <input type="checkbox" id="faMaj" value="Fa majeur">
-                    <label for="faMaj">Fa majeur</label>
-
-                    <input type="checkbox" id="reMin" value="Ré mineur">
-                    <label for="reMin">Ré mineur</label>
-
-                    <input type="checkbox" id="solMaj" value="Sol majeur">
-                    <label for="solMaj">Sol majeur</label>
-
-                    <input type="checkbox" id="miMin" value="Mi mineur">
-                    <label for="miMin">Mi mineur</label>
+                    <div>
+                      <input type="checkbox" id="doMaj" value="Do majeur">
+                      <label for="doMaj">Do majeur</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="laMin" value="La mineur">
+                      <label for="laMin">La mineur</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="faMaj" value="Fa majeur">
+                      <label for="faMaj">Fa majeur</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="reMin" value="Ré mineur">
+                      <label for="reMin">Ré mineur</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="solMaj" value="Sol majeur">
+                      <label for="solMaj">Sol majeur</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="miMin" value="Mi mineur">
+                      <label for="miMin">Mi mineur</label>
+                    </div>
                 </div>
             </div>
 
@@ -331,6 +344,17 @@
                 return;
             }
 
+            // Affichage du tirage précédent si déjà présent
+            const dernierStandard = localStorage.getItem("dernierStandard");
+            const derniereCadence = localStorage.getItem("derniereCadence");
+            if (dernierStandard && derniereCadence) {
+              document.getElementById("lastDraw").style.display = "block";
+              document.getElementById("lastDraw").innerHTML = `
+                Dernier tirage :<br>
+                Standard : <em>${dernierStandard}</em><br>
+                Cadence : <em>${derniereCadence}</em>
+              `;
+            }
             // Tirer un standard au hasard parmi ceux sélectionnés
             const randomStandard = selectedStandards[Math.floor(Math.random() * selectedStandards.length)];
 
@@ -372,18 +396,6 @@
             const cadencesCoches = cadenceOption === "choix" ? cadenceValues.join(" / ") : "Toutes";
             const standardsCoches = selectedStandards.join(" / ");
 
-            // Enregistrer le tirage précédent si disponible
-            const precedentStandard = localStorage.getItem("dernierStandard");
-            const precedenteCadence = localStorage.getItem("derniereCadence");
-            
-            if (precedentStandard && precedenteCadence) {
-              document.getElementById("lastDraw").style.display = "block";
-              document.getElementById("lastDraw").innerHTML = `
-                Dernier tirage :<br>
-                Standard : <em>${precedentStandard}</em><br>
-                Cadence : <em>${precedenteCadence}</em>
-              `;
-            }
             
             // Afficher le résultat
             document.getElementById("result").innerHTML = `Merci.<br>Votre standard est <em>${randomStandard}</em><br>Votre cadence est en <em>${randomCadence}</em>`;
@@ -392,6 +404,7 @@
             document.getElementById("error").textContent = "";
             localStorage.setItem("dernierStandard", randomStandard);
             localStorage.setItem("derniereCadence", randomCadence);
+            
             // Envoyer les données vers Google Sheets via Apps Script
             fetch("https://script.google.com/macros/s/AKfycbzyrees8RVzBQfVDabLHULio4uOJaerzQCu-RAZ51eZVoAAqk-P6Es0Bjd-FGJOYGOf/exec", {
                 method: "POST",
@@ -510,7 +523,22 @@ document.getElementById("resetRetryBtn").addEventListener("click", () => {
     document.getElementById("error").textContent = "";
     document.getElementById("resetOptions").style.display = "none";
     document.getElementById("tirageForm").reset();
+    // Save last draw before clearing localStorage
+    const dernierStandard = localStorage.getItem("dernierStandard");
+    const derniereCadence = localStorage.getItem("derniereCadence");
     localStorage.clear();
+    document.getElementById("result").innerHTML = "";
+    // Restore last draw after clearing localStorage
+    if (dernierStandard && derniereCadence) {
+      localStorage.setItem("dernierStandard", dernierStandard);
+      localStorage.setItem("derniereCadence", derniereCadence);
+      document.getElementById("lastDraw").style.display = "block";
+      document.getElementById("lastDraw").innerHTML = `
+        Dernier tirage :<br>
+        Standard : <em>${dernierStandard}</em><br>
+        Cadence : <em>${derniereCadence}</em>
+      `;
+    }
   }
 });
 document.getElementById("resetErrorBtn").addEventListener("click", () => {
@@ -541,7 +569,11 @@ document.getElementById("resetErrorBtn").addEventListener("click", () => {
     document.getElementById("error").textContent = "";
     document.getElementById("resetOptions").style.display = "none";
     document.getElementById("tirageForm").reset();
+    document.getElementById("result").innerHTML = "";
+
     localStorage.clear();
+    document.getElementById("lastDraw").style.display = "none";
+    document.getElementById("lastDraw").innerHTML = "";
     
   }
 });  
