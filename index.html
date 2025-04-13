@@ -184,6 +184,10 @@
             background-color: #27ae60;
             color: white;
         }
+
+        #result em, #lastDraw em {
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -196,7 +200,7 @@
             <input type="text" id="nomPrénom" name="nomPrénom" required placeholder="">
 
             <!-- Choix des Standards -->
-            <label>Choisissez vos standards :</label>
+            <label>Choisissez vos standards (au moins deux) :</label>
             <div class="checkbox-group">
                 <input type="checkbox" id="blueRoom" value="Blue Room">
                 <label for="blueRoom">Blue Room</label>
@@ -213,7 +217,7 @@
 
             <!-- Choix de la cadence -->
             <div class="cadence-section">
-                <label>Choisir une cadence :</label>
+                <label>Choisissez vos cadences (soit toutes soit au moins trois) :</label>
                 <div class="cadence-buttons">
                     <button type="button" id="cadenceTirage" onclick="choisirCadenceTirage()" data-option="tirage">Parmi toutes les cadences</button>
                     <button type="button" id="cadenceChoix" onclick="choisirCadenceChoix()" data-option="choix">Parmi une sélection</button>
@@ -241,17 +245,17 @@
             </div>
 
             <!-- Bouton pour tirer au sort -->
+        <div id="error" class="error"></div>
             <button type="submit" class="submit-button">Tirer au sort</button>
         </form>
 
         <!-- Résultats -->
         <div id="result"></div>
-        <hr>
-        <p>
-          <button onclick="window.print()">📄 Télécharger ce tirage au format PDF</button><br>
-          <small style="color: #bbb;">(Ce bouton vous permet de sauvegarder les informations de votre tirage.)</small>
-        </p>
-
+<div id="lastDraw" style="margin-top: 20px; font-size: 16px; background-color: #2c2c2c; border: 1px solid #555; padding: 10px; border-radius: 8px; color: white; text-align: center;"></div>        <hr>
+<div style="margin-top: 20px; text-align: center;">
+  <button onclick="copierTirage()" style="margin: 5px; background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px;">📋 Copier dans le presse-papier</button>
+  <button onclick="window.print()" style="margin: 5px; background-color: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 6px;">📄 Imprimer pour sauvegarder en PDF</button>
+</div>
         <p><strong>Déposer vos vidéos :</strong></p>
         <p>
           Merci de déposer votre interprétation dans le dossier Google Drive ci-dessous :
@@ -264,14 +268,21 @@
 
         <p>
           <strong>Nom des fichiers attendus :</strong><br>
-          <em>NOM_Prénom_NOMduSTANDARD</em><br>
-          <em>NOM_Prénom_TONALITÉCadence</em>
+          <em>NOM_Prénom_NOMduSTANDARD</em> (ex : DUPONT_Pierre_BlueRoom)<br>
+          <em>NOM_Prénom_TONALITÉCadence</em> (ex : DUPONT_Pierre_MiMineur)
         </p>
 
         <p style="font-size: 0.9em; color: #bbb;">
           📌 Merci de créer un dossier à votre nom (au format NOM_Prénom) dans le Drive, et d’y déposer vos deux fichiers à l’intérieur.
         </p>
-        <div id="error" class="error"></div>
+<div style="margin-top: 30px; text-align: center;">
+  <button type="button" id="initResetBtn" style="font-size: 14px; background-color: #999; color: white; border: none; padding: 10px 20px; border-radius: 6px;">Réinitialiser le tirage</button>
+</div>
+
+<div id="resetOptions" style="margin-top: 20px; display: none; text-align: center;">
+  <button type="button" id="resetRetryBtn" style="background-color: #1c4c75; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 6px;">Recommencer</button>
+  <button type="button" id="resetErrorBtn" style="background-color: #c0392b; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 6px;">Réinitialiser (erreur)</button>
+</div>
     </div>
 
     <script>
@@ -293,6 +304,13 @@
 
         document.getElementById("tirageForm").addEventListener("submit", function(event) {
             event.preventDefault();
+            
+            if (localStorage.getItem("tirageEffectué") === "oui") {
+                document.getElementById("error").textContent = "Un seul tirage est autorisé.";
+                return;
+            }
+            
+           
 
             // Récupérer le nom et prénom
             const nomPrénom = document.getElementById("nomPrénom").value.trim();
@@ -336,23 +354,44 @@
                     document.getElementById("error").textContent = "Veuillez sélectionner au moins une cadence.";
                     return;
                 }
+                if (selectedCadences.length < 3) {
+                    document.getElementById("error").textContent = "Veuillez sélectionner au moins trois cadences.";
+                    return;
+                }
 
                 randomCadence = selectedCadences[Math.floor(Math.random() * selectedCadences.length)];
             }
-
+ const confirmation = confirm("Ce tirage ne peut être effectué qu’une seule fois. Êtes-vous sûr de vouloir le valider ?");
+            if (!confirmation) {
+                return;
+            }
             // Préparer les données pour l'envoi
             const cadenceCheckboxes = Array.from(document.querySelectorAll('.cadence-options input[type="checkbox"]:checked'));
             const cadenceValues = cadenceCheckboxes.map(cb => cb.value);
             const nbCadences = cadenceOption === "choix" ? cadenceValues.length : 6;
-            const cadencesCoches = cadenceOption === "choix" ? cadenceValues.join(" / ") : "toutes";
+            const cadencesCoches = cadenceOption === "choix" ? cadenceValues.join(" / ") : "Toutes";
             const standardsCoches = selectedStandards.join(" / ");
 
+            // Enregistrer le tirage précédent si disponible
+            const precedentStandard = localStorage.getItem("dernierStandard");
+            const precedenteCadence = localStorage.getItem("derniereCadence");
+            
+            if (precedentStandard && precedenteCadence) {
+              document.getElementById("lastDraw").style.display = "block";
+              document.getElementById("lastDraw").innerHTML = `
+                Dernier tirage :<br>
+                Standard : <em>${precedentStandard}</em><br>
+                Cadence : <em>${precedenteCadence}</em>
+              `;
+            }
+            
             // Afficher le résultat
             document.getElementById("result").innerHTML = `Merci.<br>Votre standard est <em>${randomStandard}</em><br>Votre cadence est en <em>${randomCadence}</em>`;
 
             // Réinitialiser le message d'erreur
             document.getElementById("error").textContent = "";
-
+            localStorage.setItem("dernierStandard", randomStandard);
+            localStorage.setItem("derniereCadence", randomCadence);
             // Envoyer les données vers Google Sheets via Apps Script
             fetch("https://script.google.com/macros/s/AKfycbzyrees8RVzBQfVDabLHULio4uOJaerzQCu-RAZ51eZVoAAqk-P6Es0Bjd-FGJOYGOf/exec", {
                 method: "POST",
@@ -371,6 +410,11 @@
                     date: new Date().toLocaleString("fr-FR")
                 })
             });
+            
+            localStorage.setItem("tirageEffectué", "oui");
+            document.querySelector(".submit-button").disabled = true;
+            document.querySelector(".submit-button").style.opacity = 0.6;
+            document.querySelector(".submit-button").style.cursor = "not-allowed";
         });
 
         // Sauvegarde automatique dans le localStorage
@@ -423,8 +467,96 @@
             const cb = document.querySelector(`.cadence-options input[value="${value}"]`);
             if (cb) cb.checked = true;
           });
+          
+          if (localStorage.getItem("tirageEffectué") === "oui") {
+              const dernierStandard = localStorage.getItem("dernierStandard");
+              const derniereCadence = localStorage.getItem("derniereCadence");
+              if (dernierStandard && derniereCadence) {
+                document.getElementById("lastDraw").style.display = "block";
+                document.getElementById("lastDraw").innerHTML = `
+                  Dernier tirage :<br>
+                  Standard : <em>${dernierStandard}</em><br>
+                  Cadence : <em>${derniereCadence}</em>
+                `;
+              }
+              document.querySelector(".submit-button").disabled = true;
+              document.querySelector(".submit-button").style.opacity = 0.6;
+              document.querySelector(".submit-button").style.cursor = "not-allowed";
+              document.getElementById("error").textContent = "✅ Vous avez déjà effectué votre tirage. Merci.";
+          }
         });
-        
+document.getElementById("initResetBtn").addEventListener("click", () => {
+  document.getElementById("resetOptions").style.display = "block";
+});
+
+document.getElementById("resetRetryBtn").addEventListener("click", () => {
+  const now = new Date();
+  const tomorrowMorning = new Date();
+  tomorrowMorning.setDate(now.getDate() + 1);
+  tomorrowMorning.setHours(9, 0, 0, 0);
+
+  const unlockDate = new Date("2025-04-16T00:00:00");
+
+  if (now > tomorrowMorning && now < unlockDate) {
+    alert("Disponible à compter du mercredi 16 avril 2025.");
+    return;
+  }
+
+  if (confirm("Êtes-vous sûr de vouloir recommencer le tirage ?")) {
+    localStorage.removeItem("tirageEffectué");
+    document.querySelector(".submit-button").disabled = false;
+    document.querySelector(".submit-button").style.opacity = 1;
+    document.querySelector(".submit-button").style.cursor = "pointer";
+    document.getElementById("error").textContent = "";
+    document.getElementById("resetOptions").style.display = "none";
+    document.getElementById("tirageForm").reset();
+    localStorage.clear();
+  }
+});
+document.getElementById("resetErrorBtn").addEventListener("click", () => {
+  const raison = prompt("Veuillez indiquer la raison de cette erreur :");
+  if (raison && confirm("Confirmer la réinitialisation à cause d'une erreur ?")) {
+    const nomPrénom = document.getElementById("nomPrénom").value.trim() || "Anonyme";
+    fetch("https://script.google.com/macros/s/AKfycbzyrees8RVzBQfVDabLHULio4uOJaerzQCu-RAZ51eZVoAAqk-P6Es0Bjd-FGJOYGOf/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        nomPrénom: nomPrénom,
+        standard: "Réinitialisation (erreur)",
+        cadence: "Réinitialisation (erreur)",
+        nbStandards: "",
+        nbCadences: "",
+        standardsCoches: raison,
+        cadencesCoches: "",
+        date: new Date().toLocaleString("fr-FR")
+      })
+    });
+    localStorage.removeItem("tirageEffectué");
+    document.querySelector(".submit-button").disabled = false;
+    document.querySelector(".submit-button").style.opacity = 1;
+    document.querySelector(".submit-button").style.cursor = "pointer";
+    document.getElementById("error").textContent = "";
+    document.getElementById("resetOptions").style.display = "none";
+    document.getElementById("tirageForm").reset();
+    localStorage.clear();
+    
+  }
+});  
+function copierTirage() {
+  const resultText = document.getElementById("result").textContent || '';
+  if (resultText.trim() === "") {
+    alert("Aucun tirage à copier.");
+    return;
+  }
+  navigator.clipboard.writeText(resultText).then(() => {
+    alert("Tirage copié dans le presse-papier !");
+  }).catch(err => {
+    alert("Échec de la copie dans le presse-papier.");
+  });
+}      
     </script>
 
 </body>
