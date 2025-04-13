@@ -82,6 +82,7 @@
         .checkbox-group input[type="checkbox"]:checked + label {
             background-color: #3498db; /* Couleur bleue pour les cases sélectionnées */
             color: white;
+            border: 2px solid white;
         }
 
         .cadence-section {
@@ -114,6 +115,7 @@
         /* Changement de couleur pour la sélection des boutons */
         .cadence-buttons button.selected {
             background-color: #e67e22; /* Foncé pour "Parmi toutes les cadences" ou "Parmi une sélection" */
+            border: 2px solid #ffffff;
         }
 
         .cadence-options {
@@ -141,10 +143,11 @@
         .cadence-options input[type="checkbox"]:checked + label {
             background-color: #f39c12; /* Orange vif pour l'option choisie */
             color: white;
+            border: 2px solid white;
         }
 
         .submit-button {
-            background-color: #e67e22; /* Orange vif pour le bouton de soumission */
+            background-color: #ff5733; /* Couleur plus contrastée pour le bouton de soumission */
             color: white;
             border: none;
             padding: 16px;
@@ -190,7 +193,7 @@
         <form id="tirageForm">
             <!-- Nom et Prénom -->
             <label for="nomPrénom">Nom et Prénom (obligatoire)</label>
-            <input type="text" id="nomPrénom" name="nomPrénom" required placeholder="Votre nom et prénom">
+            <input type="text" id="nomPrénom" name="nomPrénom" required placeholder="">
 
             <!-- Choix des Standards -->
             <label>Choisissez vos standards :</label>
@@ -212,8 +215,8 @@
             <div class="cadence-section">
                 <label>Choisir une cadence :</label>
                 <div class="cadence-buttons">
-                    <button type="button" id="cadenceTirage" onclick="choisirCadenceTirage()">Parmi toutes les cadences</button>
-                    <button type="button" id="cadenceChoix" onclick="choisirCadenceChoix()">Parmi une sélection</button>
+                    <button type="button" id="cadenceTirage" onclick="choisirCadenceTirage()" data-option="tirage">Parmi toutes les cadences</button>
+                    <button type="button" id="cadenceChoix" onclick="choisirCadenceChoix()" data-option="choix">Parmi une sélection</button>
                 </div>
 
                 <div id="cadenceOptions" class="cadence-options">
@@ -249,24 +252,24 @@
           <small style="color: #bbb;">(Ce bouton vous permet de sauvegarder les informations de votre tirage.)</small>
         </p>
 
-        <p><strong>Déposer votre vidéo :</strong></p>
+        <p><strong>Déposer vos vidéos :</strong></p>
         <p>
           Merci de déposer votre interprétation dans le dossier Google Drive ci-dessous :
         </p>
         <p>
-          <a href="https://drive.google.com/drive/folders/1O-I1JQtd_4e4lo0cTzFCc5KvpBmchw-2?usp=sharing" target="_blank">
+          <a href="https://drive.google.com/drive/folders/1O-I1JQtd_4e4lo0cTzFCc5KvpBmchw-2?usp=sharing" target="_blank" style="color: #f39c12;">
             📁 Accéder au dossier Google Drive
           </a>
         </p>
 
         <p>
-          <strong>Nom du fichier attendu :</strong><br>
-          <em>NOM_Prénom - NOMduSTANDARD</em><br>
+          <strong>Nom des fichiers attendus :</strong><br>
+          <em>NOM_Prénom_NOMduSTANDARD</em><br>
           <em>NOM_Prénom_TONALITÉCadence</em>
         </p>
 
         <p style="font-size: 0.9em; color: #bbb;">
-          📌 Vous pouvez créer un dossier à votre nom dans le Drive si vous le souhaitez.
+          📌 Merci de créer un dossier à votre nom (au format NOM_Prénom) dans le Drive, et d’y déposer vos deux fichiers à l’intérieur.
         </p>
         <div id="error" class="error"></div>
     </div>
@@ -315,7 +318,10 @@
 
             // Récupérer les cadences choisies
             let randomCadence = "Aucune cadence choisie";
-            if (cadenceOption === "tirage" || !cadenceOption) {
+            if (!cadenceOption) {
+                document.getElementById("error").textContent = "Veuillez choisir une option de cadence.";
+                return;
+            } else if (cadenceOption === "tirage") {
                 // Tirage au sort parmi les cadences prédéfinies
                 const cadences = ["Do majeur", "La mineur", "Fa majeur", "Ré mineur", "Sol majeur", "Mi mineur"];
                 randomCadence = cadences[Math.floor(Math.random() * cadences.length)];
@@ -326,9 +332,12 @@
                     selectedCadences.push(checkbox.value);
                 });
 
-                if (selectedCadences.length > 0) {
-                    randomCadence = selectedCadences[Math.floor(Math.random() * selectedCadences.length)];
+                if (selectedCadences.length === 0) {
+                    document.getElementById("error").textContent = "Veuillez sélectionner au moins une cadence.";
+                    return;
                 }
+
+                randomCadence = selectedCadences[Math.floor(Math.random() * selectedCadences.length)];
             }
 
             // Préparer les données pour l'envoi
@@ -339,7 +348,7 @@
             const standardsCoches = selectedStandards.join(" / ");
 
             // Afficher le résultat
-            document.getElementById("result").innerHTML = `Merci.<br>Votre standard : ${randomStandard}<br>Votre cadence : ${randomCadence}`;
+            document.getElementById("result").innerHTML = `Merci.<br>Votre standard est <em>${randomStandard}</em><br>Votre cadence est en <em>${randomCadence}</em>`;
 
             // Réinitialiser le message d'erreur
             document.getElementById("error").textContent = "";
@@ -363,6 +372,59 @@
                 })
             });
         });
+
+        // Sauvegarde automatique dans le localStorage
+        document.getElementById("nomPrénom").addEventListener("input", () => {
+          localStorage.setItem("nomPrénom", document.getElementById("nomPrénom").value);
+        });
+
+        document.querySelectorAll('.checkbox-group input').forEach(cb => {
+          cb.addEventListener("change", () => {
+            const checked = Array.from(document.querySelectorAll('.checkbox-group input:checked')).map(cb => cb.value);
+            localStorage.setItem("selectedStandards", JSON.stringify(checked));
+          });
+        });
+
+        document.querySelectorAll('.cadence-buttons button').forEach(btn => {
+          btn.addEventListener("click", () => {
+            localStorage.setItem("cadenceOption", btn.dataset.option);
+          });
+        });
+
+        document.querySelectorAll('.cadence-options input').forEach(cb => {
+          cb.addEventListener("change", () => {
+            const checked = Array.from(document.querySelectorAll('.cadence-options input:checked')).map(cb => cb.value);
+            localStorage.setItem("selectedCadences", JSON.stringify(checked));
+          });
+        });
+
+        // Restauration au chargement
+        window.addEventListener("DOMContentLoaded", () => {
+          const nom = localStorage.getItem("nomPrénom");
+          if (nom) document.getElementById("nomPrénom").value = nom;
+
+          const standards = JSON.parse(localStorage.getItem("selectedStandards") || "[]");
+          standards.forEach(value => {
+            const cb = document.querySelector(`.checkbox-group input[value="${value}"]`);
+            if (cb) cb.checked = true;
+          });
+
+          const cadenceOptionStored = localStorage.getItem("cadenceOption");
+          if (cadenceOptionStored) {
+            cadenceOption = cadenceOptionStored;
+            document.querySelectorAll('.cadence-buttons button').forEach(btn => {
+              btn.classList.toggle("selected", btn.dataset.option === cadenceOptionStored);
+            });
+            document.getElementById("cadenceOptions").style.display = cadenceOptionStored === "choix" ? "block" : "none";
+          }
+
+          const cadences = JSON.parse(localStorage.getItem("selectedCadences") || "[]");
+          cadences.forEach(value => {
+            const cb = document.querySelector(`.cadence-options input[value="${value}"]`);
+            if (cb) cb.checked = true;
+          });
+        });
+        
     </script>
 
 </body>
